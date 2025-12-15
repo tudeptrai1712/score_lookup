@@ -1,4 +1,3 @@
-(The file `/mnt/data/code projects/score_lookup/tudeptrai1712_score_lookup/README.md` exists, but is empty)
 **Score Lookup**
 
 This project is a small, static web application built with plain HTML, CSS, and JavaScript. It is currently served from the `public/` folder (`public/index.html`, `script.js`, `style.css`).
