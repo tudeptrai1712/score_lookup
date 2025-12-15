@@ -1,7 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
   function round2(value) {
-    if (typeof value !== 'number') return value;
-    return Math.round(value * 100) / 100;
+    if (typeof value === 'number') return Math.round(value * 100) / 100;
+    if (typeof value === 'string' && value.trim() !== '' && !isNaN(Number(value))) {
+      const n = Number(value);
+      return Math.round(n * 100) / 100;
+    }
+    return value;
   }
   const searchBtn = document.getElementById('search-btn');
   const sbdInput = document.getElementById('sbd-input');
@@ -36,8 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const subs = combinations[k];
           let sum = 0;
           for (const sub of subs) {
-            if (s[sub] == null) { sum = null; break; }
-            sum += s[sub];
+              if (s[sub] == null) { sum = null; break; }
+              const v = Number(s[sub]);
+              if (!Number.isFinite(v)) { sum = null; break; }
+              sum += v;
           }
           s[k] = sum;
         }
@@ -46,7 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const keys = ['Toán','Văn','NN','Lí','Hóa','Sinh','Sử','Địa','GDKT&PL','TB', ...Object.keys(combinations)];
 
       keys.forEach(k => {
-        const scores = studentData.map(s => s[k]).filter(v => v != null);
+        const scores = studentData
+          .map(s => s[k])
+          .filter(v => v != null)
+          .map(v => (typeof v === 'number' ? v : (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v)) ? Number(v) : NaN)))
+          .filter(v => Number.isFinite(v));
         if (!scores.length) return;
         allScores[k] = [...scores].sort((a,b)=>a-b);
         if (k === 'TB') {
@@ -74,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let pct = '', avg = '';
       if (allScores[k]) {
-        const c = allScores[k].filter(v => v <= s[k]).length;
+        const sVal = Number(s[k]);
+        const c = allScores[k].filter(v => v <= sVal).length;
         pct = Math.round((c / allScores[k].length) * 100) + 'th';
         avg = subjectStats[k]?.avg != null ? `avg ${round2(subjectStats[k].avg).toFixed(2)}` : '';
       }
@@ -82,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
       html += `
         <div class="row">
           <div class="label">${k}</div>
-          <div class="value">${k === 'SBD' ? s[k] : (typeof s[k] === 'number' ? round2(s[k]).toFixed(2) : s[k])}</div>
+          <div class="value">${k === 'SBD' ? s[k] : (!isNaN(Number(s[k])) ? round2(Number(s[k])).toFixed(2) : s[k])}</div>
           <div class="meta"><span class="pct">${pct}</span><span class="avg">${avg}</span></div>
         </div>`;
     }
@@ -91,7 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     for (const k in combinations) {
       if (s[k] == null) continue;
-      const c = allScores[k].filter(v => v <= s[k]).length;
+      const sVal = Number(s[k]);
+      const c = allScores[k].filter(v => v <= sVal).length;
       const pct = Math.round((c / allScores[k].length) * 100) + 'th';
       const avg = subjectStats[k]?.avg != null ? `avg ${round2(subjectStats[k].avg).toFixed(2)}` : '';
 
