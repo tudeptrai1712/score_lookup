@@ -1,32 +1,121 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const searchBtn = document.getElementById('search-btn');
-    const sbdInput = document.getElementById('sbd-input');
-    const resultContainer = document.getElementById('result-container');
+  function round2(value) {
+    if (typeof value === 'number') return Math.round(value * 100) / 100;
+    if (typeof value === 'string' && value.trim() !== '' && !isNaN(Number(value))) {
+      const n = Number(value);
+      return Math.round(n * 100) / 100;
+    }
+    return value;
+  }
+  const searchBtn = document.getElementById('search-btn');
+  const sbdInput = document.getElementById('sbd-input');
+  const resultContainer = document.getElementById('result-container');
 
-    let studentData = [];
+  let studentData = [];
+  let allScores = {};
+  let subjectStats = {};
 
-    fetch('../assess/data/điểm khối 12.jsonl')
-        .then(response => response.text())
-        .then(text => {
-            studentData = text.trim().split('\n').map(line => JSON.parse(line));
-        });
+  const combinations = {
+    A00: ['Toán','Lí','Hóa'],
+    A01: ['Toán','Lí','NN'],
+    B00: ['Toán','Hóa','Sinh'],
+    C00: ['Văn','Sử','Địa'],
+    C01: ['Văn','Toán','Lí'],
+    C02: ['Văn','Toán','Hóa'],
+    D01: ['Văn','Toán','NN'],
+    D07: ['Toán','Hóa','NN'],
+    D09: ['Toán','NN','Sử'],
+    D14: ['Văn','NN','Sử'],
+    D15: ['Văn','NN','Địa'],
+    D66: ['Văn','NN','GDKT&PL']
+  };
 
-    searchBtn.addEventListener('click', () => {
-        const sbd = sbdInput.value;
-        const student = studentData.find(s => s.SBD.toString() === sbd);
+  fetch('data/điểm khối 12.jsonl')
+    .then(r => r.text())
+    .then(text => {
+      studentData = text.trim().split('\n').map(l => JSON.parse(l));
 
-        if (student) {
-            let resultHTML = '<h2>Thông tin thí sinh</h2>';
-            resultHTML += '<ul>';
-            for (const key in student) {
-                if (student.hasOwnProperty(key)) {
-                    resultHTML += `<li><strong>${key}:</strong> ${student[key] !== null ? student[key] : 'N/A'}</li>`;
-                }
-            }
-            resultHTML += '</ul>';
-            resultContainer.innerHTML = resultHTML;
-        } else {
-            resultContainer.innerHTML = '<p>Không tìm thấy thí sinh với SBD này.</p>';
+      studentData.forEach(s => {
+        for (const k in combinations) {
+          const subs = combinations[k];
+          let sum = 0;
+          for (const sub of subs) {
+              if (s[sub] == null) { sum = null; break; }
+              const v = Number(s[sub]);
+              if (!Number.isFinite(v)) { sum = null; break; }
+              sum += v;
+          }
+          s[k] = sum;
         }
+      });
+
+      const keys = ['Toán','Văn','NN','Lí','Hóa','Sinh','Sử','Địa','GDKT&PL','TB', ...Object.keys(combinations)];
+
+      keys.forEach(k => {
+        const scores = studentData
+          .map(s => s[k])
+          .filter(v => v != null)
+          .map(v => (typeof v === 'number' ? v : (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v)) ? Number(v) : NaN)))
+          .filter(v => Number.isFinite(v));
+        if (!scores.length) return;
+        allScores[k] = [...scores].sort((a,b)=>a-b);
+        if (k === 'TB') {
+          subjectStats[k] = {};
+        } else {
+          subjectStats[k] = { avg: round2(scores.reduce((a,b)=>a+b,0)/scores.length) };
+        }
+      });
     });
+
+  searchBtn.onclick = () => {
+    const sbd = sbdInput.value.trim();
+    const s = studentData.find(x => String(x.SBD) === sbd);
+
+    if (!s) {
+      resultContainer.innerHTML = '<p>Không tìm thấy thí sinh.</p>';
+      return;
+    }
+
+    let html = '<h2>Thông tin thí sinh</h2><div class="card">';
+
+    for (const k in s) {
+      if (['A00','A01','B00','C00','C01','C02','D01','D07','D09','D14','D15','D66'].includes(k)) continue;
+      if (s[k] == null) continue;
+
+      let pct = '', avg = '';
+      if (allScores[k]) {
+        const sVal = Number(s[k]);
+        const c = allScores[k].filter(v => v <= sVal).length;
+        pct = Math.round((c / allScores[k].length) * 100) + 'th';
+        avg = subjectStats[k]?.avg != null ? `avg ${round2(subjectStats[k].avg).toFixed(2)}` : '';
+      }
+
+      html += `
+        <div class="row">
+          <div class="label">${k}</div>
+          <div class="value">${k === 'SBD' ? s[k] : (!isNaN(Number(s[k])) ? round2(Number(s[k])).toFixed(2) : s[k])}</div>
+          <div class="meta"><span class="pct">${pct}</span><span class="avg">${avg}</span></div>
+        </div>`;
+    }
+
+    html += '</div><h2>Tổ hợp</h2><div class="card">';
+
+    for (const k in combinations) {
+      if (s[k] == null) continue;
+      const sVal = Number(s[k]);
+      const c = allScores[k].filter(v => v <= sVal).length;
+      const pct = Math.round((c / allScores[k].length) * 100) + 'th';
+      const avg = subjectStats[k]?.avg != null ? `avg ${round2(subjectStats[k].avg).toFixed(2)}` : '';
+
+      html += `
+        <div class="row">
+          <div class="label">${k}</div>
+          <div class="value">${round2(s[k]).toFixed(2)}</div>
+          <div class="meta"><span class="pct">${pct}</span><span class="avg">${avg}</span></div>
+        </div>`;
+    }
+
+    html += '</div>';
+    resultContainer.innerHTML = html;
+  };
 });
