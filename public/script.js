@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
   C00: ['Văn','Sử','Địa'],
   C01: ['Văn','Toán','Lí'],
   C02: ['Văn','Toán','Hóa'],
+  C04: ['Văn','Toán','Địa'],
+  C14: ['Văn','Toán','GDKT&PL'],
   D01: ['Văn','Toán','NN'],
   D07: ['Toán','Hóa','NN'],
   D09: ['Toán','NN','Sử'],
