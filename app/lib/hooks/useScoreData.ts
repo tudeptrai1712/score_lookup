@@ -111,7 +111,24 @@ export function useScoreData() {
 
   const searchSbd = (sbd: string) => {
     if (!studentData || !studentData.length) return null;
-    return studentData.find((x) => String(x.SBD) === sbd) || null;
+    const q = String(sbd ?? '').trim();
+    if (!q) return null;
+
+    // try exact string match first
+    let found = studentData.find((x) => String(x.SBD).trim() === q);
+    if (found) return found;
+
+    // try numeric comparison (handles user input as number or string)
+    const qNum = Number(q.replace(/\D+/g, ''));
+    if (Number.isFinite(qNum)) {
+      found = studentData.find((x) => Number(x.SBD) === qNum);
+      if (found) return found;
+    }
+
+    // fallback: try case-insensitive name contains (allow searching by name)
+    const qLower = q.toLowerCase();
+    found = studentData.find((x) => String(x['Họ và tên'] || '').toLowerCase().includes(qLower));
+    return found || null;
   };
 
   return { loading, error, searchSbd, allScores, subjectStats, combinations };
