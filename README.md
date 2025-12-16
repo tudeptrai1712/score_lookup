@@ -1,6 +1,6 @@
 **Score Lookup**
 
-This project is a small, static web application built with plain HTML, CSS, and JavaScript. It is currently served from the `public/` folder (`public/index.html`, `script.js`, `style.css`).
+This project started as a small, static web application built with plain HTML, CSS, and JavaScript. It has been migrated to a Next.js app; the UI and data remain static (served from `public/data/`), but the app now runs as a Next.js application using React components (`app/page.tsx`, `app/layout.tsx`).
 
 **License — GPLv3+ (proudly)**
 
@@ -12,24 +12,19 @@ Parts of this project were authored with assistance from AI and reviewed, curate
 
 **Quick Start**
 
-- Open `public/index.html` in your browser to run the app locally.
-- Or serve the project with a simple static server, for example:
+- Run the Next.js development server:
 
 ```bash
-python3 -m http.server 8000
-# then open http://localhost:8000/public/index.html
+npm install
+npm run dev
 ```
 
-or
-
-```bash
-npx serve public
-```
+- The CLI scripts are defined in `package.json` (`dev`, `build`, `start`, `lint`). If you prefer the standalone static experience you can still open `public/index.html` directly or serve `public/` as a static site.
 
 **Status & Notes**
 
-- The project is currently static (HTML/CSS/JS). Some Next.js files/configs remained from the original scaffold but the running site is static unless you run a Next.js server.
-- If you want this repository to be a pure static project (remove Next.js scripts and deps), open an issue or request and I can help tidy `package.json` and configs.
+- The app has been migrated to Next.js and now runs as a React-based Next app. The dataset remains static and is served from `public/data/`.
+- If you want me to remove legacy Next scaffold files or tidy `package.json` (e.g., remove dependencies) I can do that as a follow-up.
 
 **Contributing**
 

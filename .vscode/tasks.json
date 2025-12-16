@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: install",
+      "type": "shell",
+      "command": "npm install",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: dev",
+      "type": "shell",
+      "command": "npm run dev",
+      "isBackground": true,
+      "presentation": { "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: build",
+      "type": "shell",
+      "command": "npm run build",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: lint",
+      "type": "shell",
+      "command": "npm run lint",
+      "problemMatcher": []
+    }
+  ]
+}
